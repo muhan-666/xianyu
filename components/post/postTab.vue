@@ -44,7 +44,9 @@
 <style lang="less" scoped>
 
      .tab {
-        position: relative;
+        position: absolute;
+        width: 100%;
+        height: 100%;
         border-top: 1px solid #ddd;
         border-left: 1px solid #ddd;
          .left {
@@ -75,7 +77,7 @@
              }
          }
          .active{
-            border-right-color: #fff;
+            border-right-color: #fff !important;
             color: orange;
         }
         

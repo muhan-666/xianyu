@@ -23,33 +23,46 @@
     <div class="content">
       <div class="search">
         <div class="searchCity">
-          <input type="text" placeholder="请输入想去的城市，如:'广州'">
-          <i class="el-icon-search"></i>
+          <input type="text" v-model="searchCity" placeholder="请输入想去的城市，如:'广州'" 
+          @keypress.13="getCityPost(searchCity)">
+
+          <i class="el-icon-search" @click="getCityPost(searchCity)"></i>
+          <!-- <i class="el-icon-search"></i> -->
         </div>
         <div class="searchRecommend">
           推荐：
-          <span v-for="(item, index) in ['广州', '上海', '北京']" :key="index">{{item}}</span>
+          <span v-for="(item, index) in ['广州', '上海', '北京']" :key="index" @click="getCityPost(item)">{{item}}</span>
         </div>
       </div>
       <el-row class="postTitle" type="flex" justify="space-between">
-          <h4>推荐攻略&nbsp;</h4>
-          <el-button type="primary" icon="el-icon-edit" class="el-btn">写游记</el-button>
+        <h4>推荐攻略&nbsp;</h4>
+        <el-button type="primary" icon="el-icon-edit" class="el-btn" @click="$router.push({path:'post/writePost'})">写游记</el-button>
       </el-row>
       <div class="post">
-        <postItem :data="item" v-for="(item, index) in postData" :key="index"/>
+        <postItem :data="item" v-for="(item, index) in cachepostData" :key="index" />
       </div>
+      <div class="pagination">
+        <el-pagination
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="pageIndex"
+          :page-sizes="[2, 4, 6, 8]"
+          :page-size="pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total">
+        </el-pagination>
     </div>
+    </div>
+    {{getPostdata}}
   </div>
 </template>
 
 <script>
   import postTab from '@/components/post/postTab'
-  import postSearchInput from '@/components/post/postSearchInput'
   import postItem from '@/components/post/postItem'
   export default {
     components: {
       postTab,
-      postSearchInput,
       postItem
     },
     data() {
@@ -57,13 +70,65 @@
         cityData: '',
         cityInfo: [],
         show: false,
-        postData: []
+        postData: [],
+        cachepostData:[],
+        pageSize: 2,
+        pageIndex: 1,
+        total:1,
+        searchCity:''
+      }
+    },
+    computed:{
+      getPostdata(){
+
+        this.cachepostData = this.postData.slice((this.pageIndex - 1) * this.pageSize, this.pageIndex * this.pageSize)
+
+        return ''
+      }
+    },
+    watch: {
+      '$route'(){
+        // console.log(this.$route.query.city)
+        this.$axios({
+             url: '/posts',
+             params:{
+               city: this.$route.query.city
+             }
+          }).then(res => {
+              // console.log(res)
+             this.total = res.data.total
+             this.postData = res.data.data
+          })
       }
     },
     methods: {
+      getCityPost(val){
+        this.$router.push({path: `/post?city=${val}`})
+      },
       cityInfoshow(cityInfo) {
         this.cityInfo = cityInfo
         this.show = true
+      },
+      // 更改页数时触发的函数
+      handleCurrentChange(val){
+        // console.log(val)
+        this.pageIndex = val
+      },
+      //更改条数时触发的函数 
+      handleSizeChange(val){
+        this.pageSize = val
+      },
+      getPost(){
+          // 获取文章列表
+          
+          this.$axios({
+             url: '/posts',
+             params:{}
+          }).then(res => {
+              console.log(res)
+             this.total = res.data.total
+             this.postData = res.data.data
+          })
       }
     },
     mounted() {
@@ -72,19 +137,16 @@
       }).then(res => {
         this.cityData = res.data.data
       })
-      this.$axios({
-        url: '/posts'
-      }).then(res => {
-        this.postData = res.data.data
-      })
+      
+      this.getPost()
     }
   }
 </script>
 
 <style lang="less" scoped>
-el-button.el-btn.el-button--primary{
-  right: 0;
-}
+  el-button.el-btn.el-button--primary {
+    right: 0;
+  }
   #container {
     width: 1000px;
     margin: 20px auto;
@@ -92,9 +154,11 @@ el-button.el-btn.el-button--primary{
     justify-content: space-between;
     .recommend {
       width: 260px;
+      
       .tablan {
         position: relative;
         width: 260px;
+        min-height: 165px;
         .right {
           position: absolute;
           left: 260px;
@@ -181,15 +245,15 @@ el-button.el-btn.el-button--primary{
           }
         }
       }
-      .postTitle{
+      .postTitle {
         align-items: center;
         padding: 10px 0;
         border-bottom: 1px solid #ccc;
-        h4{
+        h4 {
           font-size: 18px;
           color: orange;
           font-weight: 400;
-          &::after{
+          &::after {
             display: block;
             content: "";
             width: 72px;
@@ -200,6 +264,10 @@ el-button.el-btn.el-button--primary{
             left: 0;
           }
         }
+      }
+      .pagination{
+        margin-top: 15px;
+        text-align: center;
       }
     }
   }

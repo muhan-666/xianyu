@@ -1,8 +1,8 @@
 <template>
   <div v-if="data.images.length >= 3" class="post">
-      <div class="title"><h4>{{data.title}}</h4></div>
-      <div class="textcontent" v-html="data.summary"></div>
-      <div class="img"><div class="layoutimg" v-for="(item, index) in data.images" :key="index"><img :src="item" alt=""></div></div>
+      <div class="title" @click="$router.push({path:`/post/detail?id=${data.id}`})"><h4>{{data.title}}</h4></div>
+      <div class="textcontent" @click="$router.push({path:`/post/detail?id=${data.id}`})" v-html="data.summary"></div>
+      <div class="img" @click="$router.push({path:`/post/detail?id=${data.id}`})"><div class="layoutimg" v-for="(item, index) in data.images" :key="index"><img :src="item" alt=""></div></div>
       <el-row type="flex" class="postInfo" justify="space-between">
         <div class="sendInfo">
             <span class="city"><i class="el-icon-location-outline"></i>{{data.cityName}}</span>
@@ -18,13 +18,13 @@
       </el-row>
      
   </div>
-  <div v-else-if="data.images.length < 3" class="post">
+  <div v-else-if="data.images.length < 3 && this.data.images.length>=1" class="post">
        <div class="min3">
-            <div class="img"><div class="layoutimg" v-for="(item, index) in data.images" :key="index"><img :src="item" alt=""></div></div>
+            <div class="img" @click="$router.push({path:`/post/detail?id=${data.id}`})"><div class="layoutimg" v-for="(item, index) in data.images" :key="index"><img :src="item" alt=""></div></div>
 
         <div class="info">
-            <div class="title"><h4>{{data.title}}</h4></div>
-            <div class="textcontent" v-html="data.summary"></div>
+            <div class="title" @click="$router.push({path:`/post/detail?id=${data.id}`})"><h4>{{data.title}}</h4></div>
+            <div class="textcontent" @click="$router.push({path:`/post/detail?id=${data.id}`})" v-html="data.summary"></div>
             <el-row type="flex" class="postInfo" justify="space-between">
                 <div class="sendInfo">
                     <span class="city"><i class="el-icon-location-outline"></i>{{data.cityName}}</span>
@@ -41,7 +41,25 @@
         </div>
        </div>
   </div>
-  <div v-else-if="data.images.length = 0" class="post">没有图片</div>
+  <div v-else-if="data.images.length === 0" class="post">
+      <div class="info">
+            <div class="title" @click="$router.push({path:`/post/detail?id=${data.id}`})"><h4>{{data.title}}</h4></div>
+            <div class="textcontent" @click="$router.push({path:`/post/detail?id=${data.id}`})" v-html="data.summary"></div>
+            <el-row type="flex" class="postInfo" justify="space-between">
+                <div class="sendInfo">
+                    <span class="city"><i class="el-icon-location-outline"></i>{{data.cityName}}</span>
+                    <span class="account">
+                        by
+                        <img :src="`${$axios.defaults.baseURL + data.account.defaultAvatar}`" alt="">
+                        <span class="nickname">{{data.account.nickname}}</span>
+                        <span class="watch"><i class="el-icon-view"></i>{{data.watch}}</span>
+                    </span>
+                </div>
+            <span class="like">{{data.like === null? 0 : data.like}}&nbsp;赞</span>
+
+        </el-row>
+        </div>
+  </div>
 </template>
 
 <script>
@@ -49,19 +67,28 @@ export default {
     props:{
         data:{
             type: Object,
-            default:[]
+            default(){return {}}
+        }
+    },
+    watch: {
+        data(){
+            if(this.data.images.length >= 3){
+                // console.log('大于三张',this.data)
+                this.data.images.splice(3)
+            }
+            if(this.data.images.length < 3){
+                // console.log('小于三张',this.data)
+                this.data.images.splice(1)
+            }
         }
     },
     mounted () {
-     if(this.data.images.length >= 3){
-         this.data.images.splice(3)
-     }
-    if(this.data.images.length < 3){
-         this.data.images.splice(1)
-     }
-     setTimeout(() => {
-         console.log(this.data)
-     }, 100);
+    //     let i = 1
+    //  setTimeout(() => {
+    //      i++
+    //      console.log(i)
+    //      console.log(this.data)
+    //  }, 100);
     }
 }
 </script>
@@ -75,6 +102,9 @@ export default {
     border-bottom: 1px solid #eee;
     .title{
         cursor: pointer;
+        display: inline-block;
+        overflow: hidden;
+        max-width: 470px;
        h4{
             overflow: hidden;
             text-overflow: ellipsis;
@@ -103,9 +133,10 @@ export default {
         cursor: pointer;
         height: 150px;
         display: flex;
+        justify-content: space-between;
         .layoutimg{
             width: 220px;
-            margin-right: 20px;
+            overflow: hidden;
             img{
                   width: 220px;
                   height: 150px;
